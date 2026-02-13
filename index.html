@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juwon's Word Adventure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav id="navbar">
+    <div class="nav-title" data-screen="home">Juwon's Word Adventure</div>
+    <div class="nav-buttons">
+      <button class="nav-btn active" data-screen="home">
+        <span class="nav-icon">📚</span>
+        <span class="nav-label">Words</span>
+      </button>
+      <button class="nav-btn" data-screen="spelling">
+        <span class="nav-icon">✏️</span>
+        <span class="nav-label">Spell It!</span>
+      </button>
+      <button class="nav-btn" data-screen="pos">
+        <span class="nav-icon">🏷️</span>
+        <span class="nav-label">Word Types</span>
+      </button>
+      <button class="nav-btn" data-screen="sentences">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label">Sentences</span>
+      </button>
+      <button class="nav-btn" data-screen="challenge">
+        <span class="nav-icon">🏆</span>
+        <span class="nav-label">Challenge</span>
+      </button>
+      <button class="nav-btn" data-screen="progress">
+        <span class="nav-icon">⭐</span>
+        <span class="nav-label">My Stars</span>
+      </button>
+      <button class="nav-btn nav-settings" id="btn-settings">
+        <span class="nav-icon">⚙️</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <div id="settings-lock" class="settings-lock">
+        <h2>Parents Only</h2>
+        <p id="lock-question"></p>
+        <input type="number" id="lock-answer" placeholder="Answer" class="input-field">
+        <button id="btn-unlock" class="btn btn-primary">Unlock</button>
+      </div>
+      <div id="settings-panel" class="hidden">
+        <h2>Settings</h2>
+        <div class="setting-row">
+          <label>AI Features</label>
+          <label class="toggle">
+            <input type="checkbox" id="toggle-ai" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <label>AI Provider</label>
+          <select id="select-ai-provider" class="input-field" style="width:auto;min-width:140px;">
+            <option value="gemini">Gemini (Free)</option>
+            <option value="claude">Claude</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label id="label-api-key">Gemini API Key</label>
+          <input type="password" id="input-api-key" placeholder="AIza..." class="input-field">
+        </div>
+        <div class="setting-row">
+          <button id="btn-save-settings" class="btn btn-primary">Save</button>
+          <button id="btn-close-settings" class="btn btn-secondary">Close</button>
+        </div>
+        <div class="setting-row">
+          <button id="btn-reset-all" class="btn btn-danger">Reset All Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Celebration Overlay -->
+  <div id="celebration" class="celebration hidden"></div>
+
+  <!-- Screen: Home / Words -->
+  <section id="screen-home" class="screen active">
+    <div class="screen-header">
+      <h1>My Words</h1>
+      <p class="subtitle">Add your words to start learning!</p>
+    </div>
+
+    <div class="word-input-section">
+      <div class="input-row">
+        <input type="text" id="input-word" placeholder="Type a word..." class="input-field input-large" autocomplete="off">
+        <input type="text" id="input-meaning" placeholder="뜻 (meaning)" class="input-field input-large" autocomplete="off">
+        <button id="btn-add-word" class="btn btn-primary btn-large">Add</button>
+      </div>
+      <button id="btn-bulk-mode" class="btn btn-secondary">Paste Many Words</button>
+    </div>
+
+    <div id="bulk-input-section" class="hidden">
+      <textarea id="textarea-bulk" class="textarea-bulk" placeholder="Paste words here (one per line)&#10;Format: word, meaning&#10;Example:&#10;apple, 사과&#10;book, 책&#10;happy, 행복한"></textarea>
+      <div class="bulk-buttons">
+        <button id="btn-bulk-add" class="btn btn-primary">Add All</button>
+        <button id="btn-bulk-cancel" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+
+    <div id="word-count" class="word-count"></div>
+    <div id="word-list" class="word-list"></div>
+  </section>
+
+  <!-- Screen: Spelling -->
+  <section id="screen-spelling" class="screen">
+    <div class="screen-header">
+      <h1>Spell It Out!</h1>
+      <p class="subtitle">Can you spell these words?</p>
+    </div>
+
+    <div id="spelling-start" class="mode-select">
+      <button class="btn btn-large btn-practice" id="btn-spell-practice">
+        <span class="btn-emoji">🎯</span>
+        Practice
+        <span class="btn-desc">With hints</span>
+      </button>
+      <button class="btn btn-large btn-test" id="btn-spell-test">
+        <span class="btn-emoji">🏆</span>
+        Test
+        <span class="btn-desc">No hints!</span>
+      </button>
+    </div>
+
+    <div id="spelling-game" class="hidden">
+      <div class="game-header">
+        <span id="spell-progress" class="progress-text"></span>
+        <span id="spell-score" class="score-text"></span>
+        <button id="btn-spell-quit" class="btn btn-small btn-secondary">Quit</button>
+      </div>
+
+      <div class="game-card">
+        <div class="meaning-display" id="spell-meaning"></div>
+        <button class="btn-speak" id="btn-spell-speak" title="Listen">🔊</button>
+        <div id="spell-boxes" class="letter-boxes"></div>
+        <input type="text" id="spell-input" class="spell-hidden-input" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div id="spell-hint" class="hint-area"></div>
+        <div class="game-buttons">
+          <button id="btn-spell-hint" class="btn btn-secondary">Hint</button>
+          <button id="btn-spell-check" class="btn btn-primary">Check</button>
+          <button id="btn-spell-next" class="btn btn-primary hidden">Next Word</button>
+        </div>
+      </div>
+
+      <div id="spell-feedback" class="feedback-area"></div>
+    </div>
+
+    <div id="spelling-result" class="hidden result-screen">
+      <h2 id="spell-result-title"></h2>
+      <div id="spell-result-stars" class="result-stars"></div>
+      <p id="spell-result-score"></p>
+      <div id="spell-result-details"></div>
+      <button id="btn-spell-again" class="btn btn-primary btn-large">Try Again</button>
+    </div>
+  </section>
+
+  <!-- Screen: Parts of Speech -->
+  <section id="screen-pos" class="screen">
+    <div class="screen-header">
+      <h1>Word Types!</h1>
+      <p class="subtitle">What kind of word is it?</p>
+    </div>
+
+    <div id="pos-start" class="mode-select">
+      <button class="btn btn-large btn-learn" id="btn-pos-learn">
+        <span class="btn-emoji">📖</span>
+        Learn
+        <span class="btn-desc">What are word types?</span>
+      </button>
+      <button class="btn btn-large btn-quiz" id="btn-pos-quiz">
+        <span class="btn-emoji">🧠</span>
+        Quiz
+        <span class="btn-desc">Test yourself!</span>
+      </button>
+    </div>
+
+    <div id="pos-learn" class="hidden">
+      <div class="pos-cards">
+        <div class="pos-card pos-noun">
+          <div class="pos-icon">🧸</div>
+          <h3>Noun <span class="pos-kr">명사</span></h3>
+          <p>A <b>person, place, or thing</b></p>
+          <p class="pos-examples">cat, school, love</p>
+        </div>
+        <div class="pos-card pos-verb">
+          <div class="pos-icon">🏃</div>
+          <h3>Verb <span class="pos-kr">동사</span></h3>
+          <p>An <b>action</b> word</p>
+          <p class="pos-examples">run, eat, think</p>
+        </div>
+        <div class="pos-card pos-adjective">
+          <div class="pos-icon">🌈</div>
+          <h3>Adjective <span class="pos-kr">형용사</span></h3>
+          <p><b>Describes</b> a noun</p>
+          <p class="pos-examples">big, happy, red</p>
+        </div>
+        <div class="pos-card pos-adverb">
+          <div class="pos-icon">💨</div>
+          <h3>Adverb <span class="pos-kr">부사</span></h3>
+          <p><b>Describes</b> a verb</p>
+          <p class="pos-examples">quickly, very, well</p>
+        </div>
+      </div>
+      <button id="btn-pos-start-quiz" class="btn btn-primary btn-large">Start Quiz!</button>
+    </div>
+
+    <div id="pos-quiz" class="hidden">
+      <div class="game-header">
+        <span id="pos-progress" class="progress-text"></span>
+        <span id="pos-score" class="score-text"></span>
+        <button id="btn-pos-quit" class="btn btn-small btn-secondary">Quit</button>
+      </div>
+
+      <div class="game-card">
+        <div class="word-display" id="pos-word"></div>
+        <div class="meaning-sub" id="pos-meaning"></div>
+        <div class="pos-buttons">
+          <button class="btn btn-pos-choice pos-noun" data-pos="noun">🧸 Noun</button>
+          <button class="btn btn-pos-choice pos-verb" data-pos="verb">🏃 Verb</button>
+          <button class="btn btn-pos-choice pos-adjective" data-pos="adjective">🌈 Adjective</button>
+          <button class="btn btn-pos-choice pos-adverb" data-pos="adverb">💨 Adverb</button>
+        </div>
+      </div>
+
+      <div id="pos-feedback" class="feedback-area"></div>
+      <button id="btn-pos-next" class="btn btn-primary hidden">Next Word</button>
+    </div>
+
+    <div id="pos-result" class="hidden result-screen">
+      <h2 id="pos-result-title"></h2>
+      <div id="pos-result-stars" class="result-stars"></div>
+      <p id="pos-result-score"></p>
+      <div id="pos-result-details"></div>
+      <button id="btn-pos-again" class="btn btn-primary btn-large">Try Again</button>
+    </div>
+  </section>
+
+  <!-- Screen: Sentences -->
+  <section id="screen-sentences" class="screen">
+    <div class="screen-header">
+      <h1>Make a Sentence!</h1>
+      <p class="subtitle">Use the word in a sentence</p>
+    </div>
+
+    <div id="sentences-start" class="mode-select">
+      <button class="btn btn-large btn-practice" id="btn-sent-start">
+        <span class="btn-emoji">✍️</span>
+        Start Writing
+        <span class="btn-desc">Make sentences with your words</span>
+      </button>
+    </div>
+
+    <div id="sentences-game" class="hidden">
+      <div class="game-header">
+        <span id="sent-progress" class="progress-text"></span>
+        <span id="sent-score" class="score-text"></span>
+        <button id="btn-sent-quit" class="btn btn-small btn-secondary">Quit</button>
+      </div>
+
+      <div class="game-card">
+        <div class="word-display" id="sent-word"></div>
+        <div class="meaning-sub" id="sent-meaning"></div>
+        <div class="sentence-input-wrapper">
+          <textarea id="sent-input" class="sentence-input" placeholder="Write a sentence using this word..." rows="3"></textarea>
+          <button id="btn-sent-mic" class="btn-mic" title="Speak your sentence">🎤</button>
+        </div>
+        <div class="game-buttons">
+          <button id="btn-sent-example" class="btn btn-secondary">Show Example</button>
+          <button id="btn-sent-help" class="btn btn-secondary">Help Me Start</button>
+          <button id="btn-sent-check" class="btn btn-primary">Check</button>
+          <button id="btn-sent-next" class="btn btn-primary hidden">Next Word</button>
+        </div>
+      </div>
+
+      <div id="sent-feedback" class="feedback-area"></div>
+    </div>
+
+    <div id="sentences-result" class="hidden result-screen">
+      <h2 id="sent-result-title"></h2>
+      <div id="sent-result-stars" class="result-stars"></div>
+      <p id="sent-result-score"></p>
+      <div id="sent-result-details"></div>
+      <button id="btn-sent-again" class="btn btn-primary btn-large">Try Again</button>
+    </div>
+  </section>
+
+  <!-- Screen: Challenge -->
+  <section id="screen-challenge" class="screen">
+    <div class="screen-header">
+      <h1>Challenge!</h1>
+      <p class="subtitle">Spelling + Word Types + Sentences</p>
+    </div>
+
+    <div id="challenge-start" class="mode-select">
+      <button class="btn btn-large btn-test" id="btn-ch-start">
+        <span class="btn-emoji">🏆</span>
+        Start Challenge
+        <span class="btn-desc">Test all your words!</span>
+      </button>
+    </div>
+
+    <div id="challenge-phase-intro" class="hidden phase-intro">
+      <div id="challenge-phase-icon" class="phase-intro-icon"></div>
+      <h2 id="challenge-phase-title" class="phase-intro-title"></h2>
+      <p id="challenge-phase-count" class="phase-intro-count"></p>
+    </div>
+
+    <div id="challenge-game" class="hidden">
+      <div class="game-header">
+        <span id="challenge-progress" class="progress-text"></span>
+        <button id="btn-ch-quit" class="btn btn-small btn-secondary">Quit</button>
+      </div>
+      <div class="game-card" id="challenge-game-area"></div>
+    </div>
+
+    <div id="challenge-result" class="hidden result-screen">
+      <h2 id="ch-result-title"></h2>
+      <div id="ch-result-stars" class="result-stars"></div>
+      <p id="ch-result-score"></p>
+      <div id="ch-result-breakdown" class="ch-breakdown"></div>
+      <div id="ch-result-details" style="margin:16px 0;text-align:left;"></div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button id="btn-ch-retry" class="btn btn-primary btn-large hidden">
+          <span class="btn-emoji">🔄</span>
+          Retry Wrong Ones
+        </button>
+        <button id="btn-ch-again" class="btn btn-secondary btn-large">
+          <span class="btn-emoji">🏆</span>
+          New Challenge
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screen: Progress -->
+  <section id="screen-progress" class="screen">
+    <div class="screen-header">
+      <h1>My Stars!</h1>
+      <p class="subtitle">Look how much you've learned!</p>
+    </div>
+
+    <div class="progress-overview">
+      <div class="progress-stat">
+        <div class="stat-number" id="stat-total-stars">0</div>
+        <div class="stat-label">Total Stars</div>
+      </div>
+      <div class="progress-stat">
+        <div class="stat-number" id="stat-words-mastered">0</div>
+        <div class="stat-label">Words Mastered</div>
+      </div>
+      <div class="progress-stat">
+        <div class="stat-number" id="stat-streak">0</div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+    </div>
+
+    <div class="overall-progress">
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="overall-progress-bar"></div>
+      </div>
+      <span id="overall-progress-text" class="progress-label"></span>
+    </div>
+
+    <div id="badges-section" class="badges-section">
+      <h2>Badges</h2>
+      <div id="badges-list" class="badges-list"></div>
+    </div>
+
+    <div id="word-progress-list" class="word-progress-list">
+      <h2>Word Progress</h2>
+      <div id="progress-words"></div>
+    </div>
+  </section>
+
+  <script src="js/app.js"></script>
+  <script src="js/words.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/spelling.js"></script>
+  <script src="js/partsOfSpeech.js"></script>
+  <script src="js/sentences.js"></script>
+  <script src="js/challenge.js"></script>
+  <script src="js/progress.js"></script>
+</body>
+</html>
