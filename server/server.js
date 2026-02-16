@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.static(__dirname + '/..'));
 
 app.post('/api/claude', async (req, res) => {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = req.body.apiKey || process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'API key not configured' });
   }
@@ -34,7 +34,7 @@ app.post('/api/claude', async (req, res) => {
 });
 
 app.post('/api/gemini', async (req, res) => {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = req.body.apiKey || process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'Gemini API key not configured' });
   }
