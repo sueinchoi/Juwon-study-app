@@ -871,7 +871,7 @@ var AI = (function() {
     return fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: messages, max_tokens: 300, apiKey: settings.apiKey || '' })
+      body: JSON.stringify({ messages: messages, max_tokens: provider === 'gemini' ? 2048 : 300, apiKey: settings.apiKey || '' })
     })
     .then(function(resp) {
       if (!resp.ok) return null;
