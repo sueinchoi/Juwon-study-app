@@ -252,6 +252,12 @@ const Words = (() => {
       try {
         const aiResult = await AI.getWordInfo(word.word);
         if (aiResult) {
+          // Multi-POS: show picker dialog
+          if (aiResult.options && aiResult.options.length > 1) {
+            if (aiBtn) { aiBtn.textContent = '🤖'; aiBtn.disabled = false; }
+            openPosPickerDialog(id, aiResult.options);
+            return;
+          }
           if (aiResult.meaning) result.meaning = aiResult.meaning;
           if (aiResult.pos) result.pos = aiResult.pos;
           if (aiResult.example) result.example = aiResult.example;
@@ -312,6 +318,52 @@ const Words = (() => {
       toast.classList.remove('show');
       setTimeout(() => toast.remove(), 300);
     }, 2500);
+  }
+
+  function openPosPickerDialog(id, options) {
+    const word = getById(id);
+    if (!word) return;
+
+    const existing = document.querySelector('.edit-modal');
+    if (existing) existing.remove();
+
+    const posIcons = { noun: '🧸', verb: '🏃', adjective: '🌈', adverb: '💨' };
+    const posKorean = { noun: '명사', verb: '동사', adjective: '형용사', adverb: '부사' };
+
+    const buttonsHtml = options.map(function(opt, i) {
+      const icon = posIcons[opt.pos] || '📝';
+      const kr = posKorean[opt.pos] || opt.pos;
+      return '<button class="btn btn-primary pos-pick-btn" data-idx="' + i + '" style="display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;margin-bottom:8px;font-size:1rem;text-align:left;border-radius:12px;">' +
+        '<span style="font-size:1.5rem;">' + icon + '</span>' +
+        '<span><strong>' + escapeHtml(opt.pos.charAt(0).toUpperCase() + opt.pos.slice(1)) + '</strong> (' + kr + ')<br>' +
+        '<span style="font-size:0.85rem;color:#666;">' + escapeHtml(opt.meaning || '') + '</span></span>' +
+        '</button>';
+    }).join('');
+
+    const modal = document.createElement('div');
+    modal.className = 'edit-modal';
+    modal.innerHTML =
+      '<div class="edit-form" style="max-width:340px;">' +
+        '<h3 style="margin-bottom:4px;">\uD83E\uDD14 ' + escapeHtml(word.word) + '</h3>' +
+        '<p style="font-size:0.9rem;color:#555;margin-bottom:14px;">이 단어는 여러 품사로 쓸 수 있어요!<br>하나를 골라주세요:</p>' +
+        buttonsHtml +
+        '<button class="btn btn-secondary" id="pos-pick-cancel" style="width:100%;margin-top:4px;">취소</button>' +
+      '</div>';
+
+    document.body.appendChild(modal);
+
+    modal.querySelectorAll('.pos-pick-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        const chosen = options[idx];
+        update(id, { meaning: chosen.meaning, pos: chosen.pos, example: chosen.example });
+        modal.remove();
+        render();
+        showToast('"' + word.word + '" → ' + (posIcons[chosen.pos] || '') + ' ' + chosen.pos + '로 저장했어요! 🤖');
+      });
+    });
+    modal.querySelector('#pos-pick-cancel').addEventListener('click', function() { modal.remove(); });
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
   }
 
   function openAiEditDialog(id, prefill) {

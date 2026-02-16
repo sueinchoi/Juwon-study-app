@@ -894,15 +894,32 @@ var AI = (function() {
       return Promise.resolve({ meaning: fb.meaning, pos: fb.pos, example: fb.example });
     }
 
-    // Try API
-    var prompt = 'For the English word "' + word + '", provide in JSON format:\n{"meaning": "Korean meaning", "pos": "noun/verb/adjective/adverb", "example": "Simple example sentence for a child"}\nReply ONLY with the JSON, no extra text.';
+    // Try API — ask for multi-POS options when applicable
+    var prompt = 'For the English word "' + word + '", if the word can be used as multiple parts of speech (e.g. noun AND verb), reply with:\n{"options": [{"meaning": "Korean meaning as that POS", "pos": "noun", "example": "Simple sentence"}, {"meaning": "Korean meaning as other POS", "pos": "verb", "example": "Simple sentence"}]}\nIf the word has only ONE part of speech, reply with:\n{"meaning": "Korean meaning", "pos": "noun/verb/adjective/adverb", "example": "Simple example sentence for a child"}\nKeep examples simple for a child age 7-9. Reply ONLY with the JSON, no extra text.';
 
     return callAPI([{ role: 'user', content: prompt }])
       .then(function(text) {
         if (text) {
           try {
             var match = text.match(/\{[\s\S]*\}/);
-            if (match) return JSON.parse(match[0]);
+            if (match) {
+              var parsed = JSON.parse(match[0]);
+              // Multi-POS: return with options array
+              if (parsed.options && parsed.options.length > 1) {
+                // Validate each option has a valid POS
+                var validPOS = ['noun', 'verb', 'adjective', 'adverb'];
+                parsed.options = parsed.options.filter(function(opt) {
+                  return opt.pos && validPOS.indexOf(opt.pos) !== -1;
+                });
+                if (parsed.options.length > 1) return parsed;
+                if (parsed.options.length === 1) return parsed.options[0];
+              }
+              // Single POS: sanitize "noun/verb" style strings
+              if (parsed.pos && parsed.pos.indexOf('/') !== -1) {
+                parsed.pos = parsed.pos.split('/')[0].trim();
+              }
+              return parsed;
+            }
           } catch(e) { /* ignore parse errors */ }
         }
         // Last resort - guess POS
