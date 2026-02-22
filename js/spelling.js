@@ -8,6 +8,7 @@ const Spelling = (() => {
   let results = [];
   let currentWord = null;
   let isProcessing = false;
+  let isComposing = false;
 
   function reset() {
     document.getElementById('spelling-start').classList.remove('hidden');
@@ -73,7 +74,7 @@ const Spelling = (() => {
     // Reset input
     const input = document.getElementById('spell-input');
     input.value = '';
-    input.maxLength = currentWord.word.length;
+    input.removeAttribute('maxLength');
     input.focus();
 
     // Reset UI
@@ -251,10 +252,26 @@ const Spelling = (() => {
     // Hidden input for capturing keystrokes
     const input = document.getElementById('spell-input');
     input.addEventListener('input', () => {
+      // Limit length in JS instead of maxLength (avoids IME conflicts)
+      if (!isComposing && currentWord && input.value.length > currentWord.word.length) {
+        input.value = input.value.slice(0, currentWord.word.length);
+      }
       updateBoxes(input.value);
       // Always keep cursor at end to prevent backspace issues
       input.setSelectionRange(input.value.length, input.value.length);
     });
+
+    // Track IME composition state (Korean keyboard, mobile predictions, etc.)
+    input.addEventListener('compositionstart', () => { isComposing = true; });
+    input.addEventListener('compositionend', () => {
+      isComposing = false;
+      // Re-apply length limit after composition finalizes
+      if (currentWord && input.value.length > currentWord.word.length) {
+        input.value = input.value.slice(0, currentWord.word.length);
+      }
+      updateBoxes(input.value);
+    });
+
     input.addEventListener('keydown', (e) => {
       // Prevent arrow keys from moving cursor inside hidden input
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
@@ -262,14 +279,18 @@ const Spelling = (() => {
         return;
       }
       if (e.key === 'Enter') {
-        const checkBtn = document.getElementById('btn-spell-check');
-        const nextBtn = document.getElementById('btn-spell-next');
-        if (!checkBtn.classList.contains('hidden')) {
-          checkAnswer();
-        } else if (!nextBtn.classList.contains('hidden')) {
-          currentIndex++;
-          showWord();
-        }
+        e.preventDefault();
+        // Defer to let any pending input/composition events settle
+        setTimeout(() => {
+          const checkBtn = document.getElementById('btn-spell-check');
+          const nextBtn = document.getElementById('btn-spell-next');
+          if (!checkBtn.classList.contains('hidden')) {
+            checkAnswer();
+          } else if (!nextBtn.classList.contains('hidden')) {
+            currentIndex++;
+            showWord();
+          }
+        }, 0);
       }
     });
     // Click on game card focuses input (but not when clicking buttons)
