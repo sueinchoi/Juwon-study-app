@@ -3,10 +3,12 @@ const App = (() => {
   let currentScreen = 'home';
 
   // Encouragement messages
-  const ENCOURAGEMENTS = [
-    'Amazing job! 🎉', 'You did it! ⭐', 'Wonderful! 🌟', 'Keep going! 💪',
-    'So close! Try again! 😊', 'Almost there! 🚀', 'Great try! 👏',
-    'You\'re getting better! 🌈', 'Fantastic! 🎊', 'Superstar! 🌠'
+  const CORRECT_MESSAGES = [
+    'Amazing job! 🎉', 'You did it! ⭐', 'Wonderful! 🌟',
+    'Fantastic! 🎊', 'Superstar! 🌠', 'You\'re getting better! 🌈'
+  ];
+  const WRONG_MESSAGES = [
+    'So close! Try again! 😊', 'Almost there! 🚀', 'Great try! 👏', 'Keep going! 💪'
   ];
 
   function init() {
@@ -151,9 +153,9 @@ const App = (() => {
   // --- Helpers ---
   function randomEncouragement(correct) {
     if (correct) {
-      return ENCOURAGEMENTS[Math.floor(Math.random() * 5)]; // first 5 are positive
+      return CORRECT_MESSAGES[Math.floor(Math.random() * CORRECT_MESSAGES.length)];
     }
-    return ENCOURAGEMENTS[4 + Math.floor(Math.random() * 3)]; // next 3 are near-miss
+    return WRONG_MESSAGES[Math.floor(Math.random() * WRONG_MESSAGES.length)];
   }
 
   function showFeedback(el, message, type) {
