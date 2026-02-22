@@ -9,6 +9,7 @@ const Spelling = (() => {
   let currentWord = null;
   let isProcessing = false;
   let isComposing = false;
+  let savedAnswer = '';  // Stores answer independently from input.value (mobile blur safety)
 
   function reset() {
     document.getElementById('spelling-start').classList.remove('hidden');
@@ -74,6 +75,7 @@ const Spelling = (() => {
     // Reset input
     const input = document.getElementById('spell-input');
     input.value = '';
+    savedAnswer = '';
     input.removeAttribute('maxLength');
     input.focus();
 
@@ -108,8 +110,9 @@ const Spelling = (() => {
   function checkAnswer() {
     if (!currentWord || isProcessing) return;
 
-    const input = document.getElementById('spell-input');
-    const answer = input.value.trim().toLowerCase();
+    // Use savedAnswer instead of input.value — on mobile, tapping Check
+    // can blur the input and clear its value via IME composition cancel
+    const answer = savedAnswer.trim().toLowerCase();
 
     // Don't check empty input (prevents false negatives on rapid Enter)
     if (answer.length === 0) return;
@@ -256,6 +259,7 @@ const Spelling = (() => {
       if (!isComposing && currentWord && input.value.length > currentWord.word.length) {
         input.value = input.value.slice(0, currentWord.word.length);
       }
+      savedAnswer = input.value;
       updateBoxes(input.value);
       // Always keep cursor at end to prevent backspace issues
       input.setSelectionRange(input.value.length, input.value.length);
@@ -269,6 +273,7 @@ const Spelling = (() => {
       if (currentWord && input.value.length > currentWord.word.length) {
         input.value = input.value.slice(0, currentWord.word.length);
       }
+      savedAnswer = input.value;
       updateBoxes(input.value);
     });
 
