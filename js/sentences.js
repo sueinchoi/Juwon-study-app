@@ -128,7 +128,11 @@ const Sentences = (() => {
   async function tryAIReview(word, sentence, feedbackEl) {
     const review = await AI.reviewSentence(word, sentence);
     if (review) {
-      feedbackEl.textContent += ' ' + review;
+      const reviewLine = document.createElement('div');
+      reviewLine.textContent = review;
+      reviewLine.style.marginTop = '6px';
+      reviewLine.style.fontSize = '0.95em';
+      feedbackEl.appendChild(reviewLine);
     }
   }
 
@@ -223,6 +227,17 @@ const Sentences = (() => {
       isRecording = false;
       document.getElementById('btn-sent-mic').classList.remove('recording');
       document.getElementById('btn-sent-mic').textContent = '🎤';
+
+      // Auto-format: capitalize first letter and add period if missing
+      const input = document.getElementById('sent-input');
+      let text = input.value.trim();
+      if (text.length > 0) {
+        text = text[0].toUpperCase() + text.slice(1);
+        if (!/[.!?]$/.test(text)) {
+          text += '.';
+        }
+        input.value = text;
+      }
     };
 
     recognition.onerror = (event) => {

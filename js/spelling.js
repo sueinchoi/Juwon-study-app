@@ -7,6 +7,7 @@ const Spelling = (() => {
   let hintLevel = 0;
   let results = [];
   let currentWord = null;
+  let isProcessing = false;
 
   function reset() {
     document.getElementById('spelling-start').classList.remove('hidden');
@@ -44,6 +45,9 @@ const Spelling = (() => {
       return;
     }
 
+    // Block input during word transition to prevent rapid-Enter false negatives
+    isProcessing = true;
+
     currentWord = words[currentIndex];
     hintLevel = 0;
 
@@ -79,6 +83,9 @@ const Spelling = (() => {
     document.getElementById('btn-spell-check').classList.remove('hidden');
     document.getElementById('btn-spell-next').classList.add('hidden');
     document.getElementById('btn-spell-hint').disabled = false;
+
+    // Unblock input after a short delay so queued Enter events are discarded
+    setTimeout(() => { isProcessing = false; }, 150);
   }
 
   function updateBoxes(input) {
@@ -98,10 +105,13 @@ const Spelling = (() => {
   }
 
   function checkAnswer() {
-    if (!currentWord) return;
+    if (!currentWord || isProcessing) return;
 
     const input = document.getElementById('spell-input');
     const answer = input.value.trim().toLowerCase();
+
+    // Don't check empty input (prevents false negatives on rapid Enter)
+    if (answer.length === 0) return;
     const correct = answer === currentWord.word.toLowerCase();
 
     // Show letter-by-letter feedback

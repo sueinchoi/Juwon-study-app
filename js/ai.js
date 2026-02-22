@@ -955,10 +955,19 @@ var AI = (function() {
   }
 
   function reviewSentence(word, sentence) {
-    var prompt = 'A child (age 7-9) wrote this sentence using "' + word + '": "' + sentence + '"\nGive brief, encouraging feedback. Be very positive. Reply in English and Korean mix.';
+    var prompt = 'A child (age 7-9) wrote this sentence using "' + word + '": "' + sentence + '"\nRules:\n- Reply in ONE short sentence only (under 15 words)\n- Use simple plain text, no markdown, no bold, no bullet points, no emojis\n- Be encouraging and positive\n- Mix English and Korean naturally\n- Do NOT repeat the child\'s sentence back';
     return callAPI([{ role: 'user', content: prompt }])
       .then(function(text) {
-        return text || null;
+        if (!text) return null;
+        // Strip any markdown formatting the AI might include
+        text = text.replace(/[*_#`~>\[\]]/g, '').trim();
+        // Limit length: take only the first sentence
+        var firstSentence = text.split(/[.!?]/)[0];
+        if (firstSentence && firstSentence.length > 0) {
+          var endChar = text[firstSentence.length] || '!';
+          return firstSentence.trim() + endChar;
+        }
+        return text.slice(0, 80);
       });
   }
 
