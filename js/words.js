@@ -48,6 +48,12 @@ const Words = (() => {
     ProgressData.removeWord(id);
   }
 
+  function clearAll() {
+    const words = getAll();
+    words.forEach(w => ProgressData.removeWord(w.id));
+    save([]);
+  }
+
   function getById(id) {
     return getAll().find(w => w.id === id);
   }
@@ -58,9 +64,11 @@ const Words = (() => {
     const list = document.getElementById('word-list');
     const countEl = document.getElementById('word-count');
 
+    const clearBtn = document.getElementById('btn-clear-all');
     countEl.textContent = words.length > 0
       ? `${words.length} word${words.length !== 1 ? 's' : ''}`
       : '';
+    clearBtn.classList.toggle('hidden', words.length === 0);
 
     if (words.length === 0) {
       list.innerHTML = `
@@ -118,6 +126,14 @@ const Words = (() => {
       document.getElementById('bulk-input-section').classList.add('hidden');
     });
     document.getElementById('btn-bulk-add').addEventListener('click', onBulkAdd);
+
+    // Clear all words
+    document.getElementById('btn-clear-all').addEventListener('click', () => {
+      if (confirm('Delete all words? This cannot be undone!\n모든 단어를 삭제할까요? 되돌릴 수 없어요!')) {
+        clearAll();
+        render();
+      }
+    });
   }
 
   function onAddWord() {
@@ -424,7 +440,7 @@ const Words = (() => {
     render();
   });
 
-  return { getAll, getById, add, update, remove, render, onEdit, onDelete, onAiHelp };
+  return { getAll, getById, add, update, remove, clearAll, render, onEdit, onDelete, onAiHelp };
 })();
 
 // ===== PROGRESS DATA (shared helper) =====

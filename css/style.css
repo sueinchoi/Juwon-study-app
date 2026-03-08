@@ -413,9 +413,13 @@ body {
 .bulk-buttons { display: flex; gap: 8px; margin-top: 8px; }
 
 /* ===== WORD LIST ===== */
+.word-list-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+}
 .word-count {
-  text-align: center; font-size: 0.88rem;
-  color: var(--text-muted); margin-bottom: 16px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
   font-weight: 800; letter-spacing: 0.3px;
 }
 
